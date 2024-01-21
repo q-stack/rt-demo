@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Hero } from '../hero';
 import { HeroService } from '../hero.service';
+import { switchMap } from 'rxjs/operators';
+import { RtService } from '../rt.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,7 +12,10 @@ import { HeroService } from '../hero.service';
 export class DashboardComponent implements OnInit {
   heroes: Hero[] = [];
 
-  constructor(private heroService: HeroService) { }
+  constructor(
+    private heroService: HeroService,
+    private rt: RtService
+  ) { }
 
   ngOnInit(): void {
     this.getHeroes();
@@ -18,6 +23,11 @@ export class DashboardComponent implements OnInit {
 
   getHeroes(): void {
     this.heroService.getHeroes()
-      .subscribe(heroes => this.heroes = heroes.slice(1, 5));
+      .pipe(
+        switchMap((heroes: Hero[]) => this.rt.run(heroes)),
+      )
+      .subscribe(heroes => {
+        this.heroes = heroes.filter((item: any) => (item["#annotations#"]) ? item["#annotations#"].includes("top hero") : false);
+      });
   }
 }

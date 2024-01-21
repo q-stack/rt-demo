@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 
 import { Hero } from '../hero';
 import { HeroService } from '../hero.service';
+import { switchMap } from 'rxjs/operators';
+import { RtService } from '../rt.service';
 
 @Component({
   selector: 'app-heroes',
@@ -11,7 +13,7 @@ import { HeroService } from '../hero.service';
 export class HeroesComponent implements OnInit {
   heroes: Hero[] = [];
 
-  constructor(private heroService: HeroService) { }
+  constructor(private heroService: HeroService, private rt: RtService) { }
 
   ngOnInit(): void {
     this.getHeroes();
@@ -19,6 +21,9 @@ export class HeroesComponent implements OnInit {
 
   getHeroes(): void {
     this.heroService.getHeroes()
+    .pipe(
+      switchMap((heroes: Hero[]) => this.rt.run(heroes)),
+    )
     .subscribe(heroes => this.heroes = heroes);
   }
 
@@ -36,4 +41,7 @@ export class HeroesComponent implements OnInit {
     this.heroService.deleteHero(hero.id).subscribe();
   }
 
+  showDelete(hero: any) {
+    return hero['#annotations#'] ? !(hero['#annotations#'].includes('readonly') || hero['#annotations#'].includes('keep')) : true;
+  }
 }

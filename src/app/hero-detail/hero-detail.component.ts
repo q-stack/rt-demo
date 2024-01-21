@@ -4,6 +4,8 @@ import { Location } from '@angular/common';
 
 import { Hero } from '../hero';
 import { HeroService } from '../hero.service';
+import { switchMap } from 'rxjs/operators';
+import { RtService } from '../rt.service';
 
 @Component({
   selector: 'app-hero-detail',
@@ -14,6 +16,7 @@ export class HeroDetailComponent implements OnInit {
   hero: Hero | undefined;
 
   constructor(
+    private rt: RtService,
     private route: ActivatedRoute,
     private heroService: HeroService,
     private location: Location
@@ -26,6 +29,9 @@ export class HeroDetailComponent implements OnInit {
   getHero(): void {
     const id = parseInt(this.route.snapshot.paramMap.get('id')!, 10);
     this.heroService.getHero(id)
+      .pipe(
+        switchMap((hero: Hero) => this.rt.run(hero)),
+      )
       .subscribe(hero => this.hero = hero);
   }
 
@@ -38,5 +44,10 @@ export class HeroDetailComponent implements OnInit {
       this.heroService.updateHero(this.hero)
         .subscribe(() => this.goBack());
     }
+  }
+
+  disableEdit() {
+    const anno = (this.hero as any)['#annotations#'];
+    return anno ? (anno.includes("readonly")) : false;
   }
 }
