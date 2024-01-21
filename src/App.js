@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRt } from './rt';
 
 function Square({ value, onSquareClick }) {
   return (
@@ -9,6 +10,8 @@ function Square({ value, onSquareClick }) {
 }
 
 function Board({ xIsNext, squares, onPlay }) {
+  const moves = useRt(squares);
+
   function handleClick(i) {
     if (calculateWinner(squares) || squares[i]) {
       return;
@@ -21,6 +24,12 @@ function Board({ xIsNext, squares, onPlay }) {
     }
     onPlay(nextSquares);
   }
+
+  useEffect(() => {
+    if (!xIsNext && moves.length > 0) {
+      handleClick(moves[0]);
+    }
+  }, [xIsNext, moves]);
 
   const winner = calculateWinner(squares);
   let status;
